@@ -4,7 +4,7 @@ const querystring = require('querystring');
 const crypto = require('crypto');
 
 // 3000번 포트 사용
-const port = 3001;
+const port = 3000;
 const HASHING_CNT = 10;
 const HASHING_LENGTH = 32;
 const HASHING_ALGORITHM = "SHA512";
@@ -12,8 +12,8 @@ const ENCODING = "base64";
 
 const HEADER_CONTENT_TYPE = "Content-Type";
 
-const CONTENT_TYPE_JSON = "application/json";
-const CONTENT_TYPE_TEXT = "text/plain";
+const CONTENT_TYPE_JSON = "application/json; charset=utf-8";
+const CONTENT_TYPE_TEXT = "text/plain; charset=utf-8";
 
 const server = http.createServer((req, res) => {
     let urlParsed = url.parse(req.url);
