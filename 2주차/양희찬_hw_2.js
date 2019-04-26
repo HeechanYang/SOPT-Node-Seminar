@@ -56,11 +56,15 @@ const server = http.createServer((req, res) => {
                         doResponse(res, 500, resMsg);
                     } else {
                         const hashedPw = result.toString(ENCODING);
+                        let resData = {
+                            id: id,
+                            hashedPw: hashedPw,
+                            salt: salt
+                        };
 
                         const resultCsv = json2csv.parse({
-                            'id': id,
-                            'pw': hashedPw,
-                            'salt': salt
+                            data: resData,
+                            fields: Object.keys(resData)
                         });
 
                         fs.writeFile(FILE_NAME_ACCOUNT, resultCsv, (err) => {
@@ -84,18 +88,19 @@ const server = http.createServer((req, res) => {
         if (fs.existsSync(FILE_NAME_ACCOUNT)) {
             csvtojson()
                 .fromFile(FILE_NAME_ACCOUNT)
-                .then(function (accountsJson) { 
+                .then(function (accountsJson) {
                     let findRow;
 
-                    accountsJson.forEach(function (row) {
-                        if (id === row.id) {
-                            findRow = row;
+                    accountsJson.forEach(function (rowJson) {
+                        let rowData = JSON.parse(rowJson.data);
+                        if (id === rowData.id) {
+                            findRow = rowData;
                             return false;
                         }
                     });
 
                     if (findRow !== undefined) {
-                        let tempPw = findRow.pw;
+                        let tempPw = findRow.hashedPw;
                         let salt = findRow.salt;
                         crypto.pbkdf2(pw, salt, HASHING_CNT, HASHING_LENGTH, HASHING_ALGORITHM, (err, result) => {
                             if (err) {
@@ -142,11 +147,13 @@ const server = http.createServer((req, res) => {
                 resMsg.msg = "request error";
                 doResponse(res, 500, resMsg);
             } else {
-                const resData = JSON.parse(body).data;
+                let resData = JSON.parse(body).data;
+                const csvData = {
+                    data:resData,
+                    fields:Object.keys(resData)
+                }
 
-                // console.log(resData);
-
-                const resultCsv = json2csv.parse(resData);
+                const resultCsv = json2csv.parse(csvData);
 
                 fs.writeFile(FILE_NAME_INFO, resultCsv, (err) => {
                     if (err) {
