@@ -53,51 +53,52 @@ const boardUtil = {
         });
     },
     modifyBoard: (res, data, body) => {
-        const targetIdx = data.id.indexOf(body.id);
-        crypto.pbkdf2(body.password, data.salt[targetIdx], HASHING_CNT, HASHING_LENGTH, HASHING_ALGORITHM, (err, result) => {
-            const hashedPw = result.toString(ENCODING);
-            if (data.password[targetIdx] === hashedPw) {
-
-                data.title[targetIdx] = body.title;
-                data.contents[targetIdx] = body.contents;
-                data.createdTime[targetIdx] = moment().format(SIMPLE_DATE_FORMAT);
-
-                const resultCsv = fileUtil.jsonToCsv(data);
-
-                fileUtil.writeFile(res, resultCsv, responseMessage.MODIFY_BOARD_SUCCESS)
-            }else{
-                res.status(statusCode.BAD_REQUEST).send(utils.successFalse(statusCode.BAD_REQUEST, responseMessage.MISS_MATCH_PW));
-            }
+        boardUtil.indexOf(res, data, body.id, (targetIdx)=>{
+            crypto.pbkdf2(body.password, data.salt[targetIdx], HASHING_CNT, HASHING_LENGTH, HASHING_ALGORITHM, (err, result) => {
+                const hashedPw = result.toString(ENCODING);
+                if (data.password[targetIdx] === hashedPw) {
+    
+                    data.title[targetIdx] = body.title;
+                    data.contents[targetIdx] = body.contents;
+                    data.createdTime[targetIdx] = moment().format(SIMPLE_DATE_FORMAT);
+    
+                    const resultCsv = fileUtil.jsonToCsv(data);
+    
+                    fileUtil.writeFile(res, resultCsv, responseMessage.MODIFY_BOARD_SUCCESS)
+                }else{
+                    res.status(statusCode.BAD_REQUEST).send(utils.successFalse(statusCode.BAD_REQUEST, responseMessage.MISS_MATCH_PW));
+                }
+            });
         });
     },
     deleteBoardAt: (res, data, body) => {
-        const targetIdx = data.id.indexOf(newData.id);
-
-        crypto.pbkdf2(body.password, data.salt[targetIdx], HASHING_CNT, HASHING_LENGTH, HASHING_ALGORITHM, (err, result) => {
-            const hashedPw = result.toString(ENCODING);
-            if (data.password[targetIdx] === hashedPw) {
-                data.id.splice(targetIdx, 1);
-                data.title.splice(targetIdx, 1);
-                data.contents.splice(targetIdx, 1);
-                data.createdTime.splice(targetIdx, 1);
-                data.password.splice(targetIdx, 1);
-                data.salt.splice(targetIdx, 1);
-
-                const resultCsv = fileUtil.jsonToCsv(data);
-
-                fileUtil.writeFile(res, resultCsv, responseMessage.DELETE_BOARD_SUCCESS)
-            } else {
-                res.status(statusCode.BAD_REQUEST).send(utils.successFalse(statusCode.BAD_REQUEST, responseMessage.MISS_MATCH_PW));
-            }
+        boardUtil.indexOf(res, data, body.id, (targetIdx)=>{
+            crypto.pbkdf2(body.password, data.salt[targetIdx], HASHING_CNT, HASHING_LENGTH, HASHING_ALGORITHM, (err, result) => {
+                const hashedPw = result.toString(ENCODING);
+                if (data.password[targetIdx] === hashedPw) {
+                    data.id.splice(targetIdx, 1);
+                    data.title.splice(targetIdx, 1);
+                    data.contents.splice(targetIdx, 1);
+                    data.createdTime.splice(targetIdx, 1);
+                    data.password.splice(targetIdx, 1);
+                    data.salt.splice(targetIdx, 1);
+    
+                    const resultCsv = fileUtil.jsonToCsv(data);
+    
+                    fileUtil.writeFile(res, resultCsv, responseMessage.DELETE_BOARD_SUCCESS)
+                } else {
+                    res.status(statusCode.BAD_REQUEST).send(utils.successFalse(statusCode.BAD_REQUEST, responseMessage.MISS_MATCH_PW));
+                }
+            });
         });
     },
-    indexOf: (res, data, id, funcSuccess) => {
+    indexOf: (res, data, id, func) => {
         const targetIdx = data.id.indexOf(Number(id));
 
         if (targetIdx === -1) {
             res.status(statusCode.BAD_REQUEST).send(utils.successFalse(statusCode.BAD_REQUEST, responseMessage.NOT_EXIST_BOARD));
         } else {
-            funcSuccess(targetIdx);
+            func(targetIdx);
         }
     }
 };

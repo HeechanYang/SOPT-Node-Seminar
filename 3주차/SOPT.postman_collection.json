@@ -168,7 +168,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"id\":4,\n\t\"title\":\"제목4\",\n\t\"contents\":\"내용4\",\n\t\"password\":\"123\"\n}"
+							"raw": "{\n\t\"id\":6,\n\t\"title\":\"제목4\",\n\t\"contents\":\"내용4\",\n\t\"password\":\"123\"\n}"
 						},
 						"url": {
 							"raw": "http://localhost:3000/homework/board",
@@ -230,7 +230,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"id\":1,\n\t\"password\": \"123\"\n}"
+							"raw": "{\n\t\"id\":2,\n\t\"password\": \"123\"\n}"
 						},
 						"url": {
 							"raw": "http://localhost:3000/homework/board",

@@ -64,7 +64,7 @@ router.delete('/board', async (req, res) => {
     const body = req.body;
 
     fileUtil.checkFileExist(res, (data) => {
-        boardUtil.deleteBoardAt(res, data, targetIdx, body);
+        boardUtil.deleteBoardAt(res, data, body);
     });
 });
 
