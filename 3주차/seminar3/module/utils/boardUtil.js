@@ -52,46 +52,44 @@ const boardUtil = {
             }
         });
     },
-    modifyBoard: (res, data, newData) => {
-        const targetIdx = data.id.indexOf(newData.id);
-        crypto.randomBytes(HASHING_LENGTH, (err, buf) => {
-            if (err) {
-                res.status(statusCode.INTERNAL_SERVER_ERROR).send(utils.successFalse(statusCode.INTERNAL_SERVER_ERROR, err));
-            } else {
-                const salt = buf.toString(ENCODING);
-                const pw = newData.password;
+    modifyBoard: (res, data, body) => {
+        const targetIdx = data.id.indexOf(body.id);
+        crypto.pbkdf2(body.password, data.salt[targetIdx], HASHING_CNT, HASHING_LENGTH, HASHING_ALGORITHM, (err, result) => {
+            const hashedPw = result.toString(ENCODING);
+            if (data.password[targetIdx] === hashedPw) {
 
-                crypto.pbkdf2(pw, salt, HASHING_CNT, HASHING_LENGTH, HASHING_ALGORITHM, (err, result) => {
-                    if (err) {
-                        res.status(statusCode.INTERNAL_SERVER_ERROR).send(utils.successFalse(statusCode.INTERNAL_SERVER_ERROR, err));
-                    } else {
-                        const hashedPw = result.toString(ENCODING);
+                data.title[targetIdx] = body.title;
+                data.contents[targetIdx] = body.contents;
+                data.createdTime[targetIdx] = moment().format(SIMPLE_DATE_FORMAT);
 
-                        data.title[targetIdx] = newData.title;
-                        data.contents[targetIdx] = newData.contents;
-                        data.createdTime[targetIdx] = moment().format(SIMPLE_DATE_FORMAT);
-                        data.password[targetIdx] = hashedPw;
-                        data.salt[targetIdx] = salt;
+                const resultCsv = fileUtil.jsonToCsv(data);
 
-                        const resultCsv = fileUtil.jsonToCsv(data);
-
-                        fileUtil.writeFile(res, resultCsv, responseMessage.MODIFY_BOARD_SUCCESS)
-                    }
-                });
+                fileUtil.writeFile(res, resultCsv, responseMessage.MODIFY_BOARD_SUCCESS)
+            }else{
+                res.status(statusCode.BAD_REQUEST).send(utils.successFalse(statusCode.BAD_REQUEST, responseMessage.MISS_MATCH_PW));
             }
         });
     },
-    deleteBoardAt: (res, data, idx) => {
-        data.id.splice(idx, 1);
-        data.title.splice(idx, 1);
-        data.contents.splice(idx, 1);
-        data.createdTime.splice(idx, 1);
-        data.password.splice(idx, 1);
-        data.salt.splice(idx, 1);
+    deleteBoardAt: (res, data, body) => {
+        const targetIdx = data.id.indexOf(newData.id);
 
-        const resultCsv = fileUtil.jsonToCsv(data);
+        crypto.pbkdf2(body.password, data.salt[targetIdx], HASHING_CNT, HASHING_LENGTH, HASHING_ALGORITHM, (err, result) => {
+            const hashedPw = result.toString(ENCODING);
+            if (data.password[targetIdx] === hashedPw) {
+                data.id.splice(targetIdx, 1);
+                data.title.splice(targetIdx, 1);
+                data.contents.splice(targetIdx, 1);
+                data.createdTime.splice(targetIdx, 1);
+                data.password.splice(targetIdx, 1);
+                data.salt.splice(targetIdx, 1);
 
-        fileUtil.writeFile(res, resultCsv, responseMessage.DELETE_BOARD_SUCCESS)
+                const resultCsv = fileUtil.jsonToCsv(data);
+
+                fileUtil.writeFile(res, resultCsv, responseMessage.DELETE_BOARD_SUCCESS)
+            } else {
+                res.status(statusCode.BAD_REQUEST).send(utils.successFalse(statusCode.BAD_REQUEST, responseMessage.MISS_MATCH_PW));
+            }
+        });
     },
     indexOf: (res, data, id, funcSuccess) => {
         const targetIdx = data.id.indexOf(Number(id));

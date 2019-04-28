@@ -55,18 +55,16 @@ router.put('/board', async (req, res) => {
     const body = req.body;
 
     fileUtil.checkFileExist(res, (data) => {
-        boardUtil.indexOf(res, data, body.id, (targetIdx) => {
-            boardUtil.modifyBoard(res, data, body);
-        })
+        boardUtil.modifyBoard(res, data, body);
     });
 });
 
 // 해당 게시글 삭제
-router.delete('/board/:id', async (req, res) => {
+router.delete('/board', async (req, res) => {
+    const body = req.body;
+
     fileUtil.checkFileExist(res, (data) => {
-        boardUtil.indexOf(res, data, req.params.id, (targetIdx) => {
-            boardUtil.deleteBoardAt(res, data, targetIdx);
-        });
+        boardUtil.deleteBoardAt(res, data, targetIdx, body);
     });
 });
 
