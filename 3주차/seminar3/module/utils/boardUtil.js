@@ -23,7 +23,16 @@ const boardUtil = {
             salt: data.salt[idx]
         }
     },
-    addBoard: (res, data, newData) => {
+    addBoard: (res, data, body) => {
+        const newData = {
+            id: body.id,
+            title: body.title,
+            contents: body.contents,
+            createdTime: moment().format(SIMPLE_DATE_FORMAT),
+            password: body.password,
+            salt: body.salt
+        };
+
         crypto.randomBytes(HASHING_LENGTH, (err, buf) => {
             if (err) {
                 res.status(statusCode.INTERNAL_SERVER_ERROR).send(utils.successFalse(statusCode.INTERNAL_SERVER_ERROR, err));

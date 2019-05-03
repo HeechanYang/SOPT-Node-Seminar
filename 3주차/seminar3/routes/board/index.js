@@ -32,20 +32,11 @@ router.get('/board', async (req, res) => {
 router.post('/board', async (req, res) => {
     const body = req.body;
 
-    const newData = {
-        id: body.id,
-        title: body.title,
-        contents: body.contents,
-        createdTime: moment().format(SIMPLE_DATE_FORMAT),
-        password: body.password,
-        salt: body.salt
-    };
-
     fileUtil.checkFileExist(res, (data) => {
         if (data.id.indexOf(newData.id) !== -1) {
             res.status(statusCode.BAD_REQUEST).send(utils.successFalse(statusCode.BAD_REQUEST, "게시글 추가 실패\n해당 id의 게시글이 이미 존재합니다 : " + newData.id));
         } else {
-            boardUtil.addBoard(res, data, newData)
+            boardUtil.addBoard(res, data, body)
         }
     });
 });
