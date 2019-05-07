@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-router.use('/homework', require('./board/index'))
+router.use('/homework', require('./homework/index'))
 
 /* GET home page. */
 router.get('/', function(req, res, next) {

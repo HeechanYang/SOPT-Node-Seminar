@@ -102,7 +102,7 @@ const boardUtil = {
         });
     },
     indexOf: (res, data, id, func) => {
-        const targetIdx = data.id.indexOf(Number(id));
+        const targetIdx = data.id.indexOf(id);
 
         if (targetIdx === -1) {
             res.status(statusCode.BAD_REQUEST).send(utils.successFalse(statusCode.BAD_REQUEST, responseMessage.NOT_EXIST_BOARD));

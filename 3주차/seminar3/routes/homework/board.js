@@ -11,10 +11,14 @@ const statusCode = require('../../module/utils/statusCode');
 const SIMPLE_DATE_FORMAT = 'YYYY-MM-DD hh:mm:ss'
 
 // 해당 ID의 게시글 조회
-router.get('/board/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
+    const id = Number(req.params.id)
     fileUtil.checkFileExist(res, (data) => {
-        boardUtil.indexOf(res, data, req.params.id, (targetIdx) => {
+        boardUtil.indexOf(res, data, id, (targetIdx) => {
             let resData = boardUtil.getBoardAt(data, targetIdx);
+
+            delete resData.password;
+            delete resData.salt;
 
             res.status(statusCode.OK).send(utils.successTrue(statusCode.OK, responseMessage.SEARCH_BOARD_SUCCESS, resData));
         });
@@ -22,14 +26,24 @@ router.get('/board/:id', async (req, res) => {
 });
 
 // 모든 게시글 조회
-router.get('/board', async (req, res) => {
+router.get('/', async (req, res) => {
     fileUtil.checkFileExist(res, (data) => {
+
+        console.log(data);
+
+        delete data.password;
+        delete data.salt;
+        for(eachData in data){
+            delete eachData.password;
+            delete eachData.salt;
+        }
+
         res.status(statusCode.OK).send(utils.successTrue(statusCode.OK, responseMessage.SEARCH_BOARD_SUCCESS, data));
     });
 });
 
 // 게시글 생성
-router.post('/board', async (req, res) => {
+router.post('/', async (req, res) => {
     const body = req.body;
 
     fileUtil.checkFileExist(res, (data) => {
@@ -42,7 +56,7 @@ router.post('/board', async (req, res) => {
 });
 
 // 게시글 수정
-router.put('/board', async (req, res) => {
+router.put('/', async (req, res) => {
     const body = req.body;
 
     fileUtil.checkFileExist(res, (data) => {
@@ -51,7 +65,7 @@ router.put('/board', async (req, res) => {
 });
 
 // 해당 게시글 삭제
-router.delete('/board', async (req, res) => {
+router.delete('/', async (req, res) => {
     const body = req.body;
 
     fileUtil.checkFileExist(res, (data) => {
