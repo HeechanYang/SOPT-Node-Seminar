@@ -47,8 +47,8 @@ router.post('/', async (req, res) => {
     const body = req.body;
 
     fileUtil.checkFileExist(res, (data) => {
-        if (data.id.indexOf(newData.id) !== -1) {
-            res.status(statusCode.BAD_REQUEST).send(utils.successFalse(statusCode.BAD_REQUEST, "게시글 추가 실패\n해당 id의 게시글이 이미 존재합니다 : " + newData.id));
+        if (data.id.indexOf(body.id) !== -1) {
+            res.status(statusCode.OK).send(utils.successFalse(statusCode.OK, "게시글 추가 실패\n해당 id의 게시글이 이미 존재합니다 : " + newData.id));
         } else {
             boardUtil.addBoard(res, data, body)
         }
