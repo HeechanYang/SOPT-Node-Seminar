@@ -13,6 +13,10 @@ router.post('/signup', async(req, res) => {
   let gender = Number(req.body.gender);
   let password = req.body.password;
   const params = [id, name, gender];
+  
+  if(!id || !name || !gender || !password){
+    res.status(200).send(defaultRes.successFalse(statusCode.BAD_REQUEST, resMessage.OUT_OF_VALUE));
+  }
 
   const getMembershipQuery = "SELECT * FROM membership WHERE id = ?";
   const getMembershipResult = await db.queryParam_Parse(getMembershipQuery, [id]);
@@ -40,17 +44,23 @@ router.post('/signup', async(req, res) => {
 router.post('/signin', async(req, res) => {
   const id = req.body.id;
   let password = req.body.password;
+  
+  if(!id || !password){
+    res.status(200).send(defaultRes.successFalse(statusCode.BAD_REQUEST, resMessage.OUT_OF_VALUE));
+  }
 
   const getMembershipByIdQuery = 'SELECT * FROM membership WHERE id = ?';
   const getMembershipByIdResult = await db.queryParam_Parse(getMembershipByIdQuery, [id]);
   const firstMembershipByIdResult = getMembershipByIdResult[0];
   
-  if (!firstMembershipByIdResult) {
+  if (!getMembershipByIdResult) {
       res.status(200).send(defaultRes.successFalse(statusCode.DB_ERROR, resMessage.MEMBERSHIP_SELECT_FAIL));
-  } else { //쿼리문이 성공했을 때
+  } else if(!firstMembershipByIdResult){
+    res.status(200).send(defaultRes.successFalse(statusCode.DB_ERROR, resMessage.SIGN_IN_FAIL));
+  }else { //쿼리문이 성공했을 때
     encrypt.getHashedPassword(password, firstMembershipByIdResult.salt, res, async(hashedPassword)=> {
       if (firstMembershipByIdResult.password !== hashedPassword) {
-          res.status(200).send(defaultRes.successFalse(statusCode.DB_ERROR, resMessage.MEMBERSHIP_SELECT_FAIL));
+        res.status(200).send(defaultRes.successFalse(statusCode.DB_ERROR, resMessage.SIGN_IN_FAIL));
       } else { // 로그인 정보가 일치할 때
         // password, salt 제거
         delete firstMembershipByIdResult.password;

@@ -23,6 +23,10 @@ router.get('/', async (req, res) => {
 
 router.get('/:idx', async (req, res) => {
   const targetIdx = Number(req.params.idx);
+  
+  if(!targetIdx){
+    res.status(200).send(defaultRes.successFalse(statusCode.BAD_REQUEST, resMessage.OUT_OF_VALUE));
+  }
 
   const getTargetBoardQuery = 'SELECT b.boardIdx, b.writer, b.title, b.content, b.writetime, m.id AS writerId, m.name AS writerName' +
   ' FROM board b INNER JOIN membership m ON b.writer = m.userIdx WHERE b.boardIdx = ?';
@@ -43,15 +47,19 @@ router.post('/', async (req, res) => {
   let password = req.body.boardPw;
   const params = [writer, title, content];
 
+  if(!writer || !title || !content || !password){
+    res.status(200).send(defaultRes.successFalse(statusCode.BAD_REQUEST, resMessage.OUT_OF_VALUE));
+  }
+
   encrypt.getSalt(res, async (salt) => {
     encrypt.getHashedPassword(password, salt, res, async (hashedPassword) => {
       params.push(hashedPassword);
       params.push(salt);
 
-      const insertWomanQuery = "INSERT INTO board (writer, title, content, writetime, boardPw, salt) VALUES (?, ?, ?, now(), ?, ?)";
-      const insertWomanResult = await db.queryParam_Parse(insertWomanQuery, params);
+      const insertBoardQuery = "INSERT INTO board (writer, title, content, writetime, boardPw, salt) VALUES (?, ?, ?, now(), ?, ?)";
+      const insertBoardResult = await db.queryParam_Parse(insertBoardQuery, params);
 
-      if (!insertWomanResult) {
+      if (!insertBoardResult) {
         res.status(200).send(defaultRes.successFalse(statusCode.DB_ERROR, resMessage.BOARD_INSERT_FAIL));
       } else { //쿼리문이 성공했을 때
         res.status(200).send(defaultRes.successTrue(statusCode.OK, resMessage.BOARD_INSERT_SUCCESS));
@@ -62,14 +70,40 @@ router.post('/', async (req, res) => {
 });
 
 router.delete('/', async (req, res) => {
-  const deleteBoardQuery = 'DELETE FROM board WHERE boardIdx = ?';
+  const targetBoardIdx = req.body.boardIdx;
+  let password = req.body.boardPw;
 
-  const deleteBoardResult = await db.queryParam_Parse(deleteBoardQuery, req.body.boardIdx);
+  if(!targetBoardIdx || !password){
+    res.status(200).send(defaultRes.successFalse(statusCode.BAD_REQUEST, resMessage.OUT_OF_VALUE));
+  }
 
-  if (!deleteBoardResult) {
-    res.status(200).send(defaultRes.successFalse(statusCode.DB_ERROR, resMessage.BOARD_DELETE_FAIL));
-  } else { //쿼리문이 성공했을 때
-    res.status(200).send(defaultRes.successTrue(statusCode.OK, resMessage.BOARD_DELETE_SUCCESS));
+  const getBoardByIdQuery = 'SELECT * FROM board WHERE boardIdx = ?';
+  const getBoardByIdResult = await db.queryParam_Parse(getBoardByIdQuery, [targetBoardIdx]);
+  const firstBoardByIdResult = getBoardByIdResult[0];
+  
+  if (!getBoardByIdResult) {
+      res.status(200).send(defaultRes.successFalse(statusCode.DB_ERROR, resMessage.BOARD_SELECT_FAIL));
+  } else if(!firstBoardByIdResult){
+    res.status(200).send(defaultRes.successFalse(statusCode.NO_CONTENT, resMessage.BOARD_NOT_EXIST + ' : ' + targetBoardIdx));
+  }else { //쿼리문이 성공했을 때
+    encrypt.getHashedPassword(password, firstBoardByIdResult.salt, res, async(hashedPassword)=> {
+      if (firstBoardByIdResult.boardPw !== hashedPassword) {
+        res.status(200).send(defaultRes.successFalse(statusCode.DB_ERROR, resMessage.BOARD_PASSWORD_INVALID));
+      } else { // 로그인 정보가 일치할 때
+        // password, salt 제거
+        delete firstBoardByIdResult.boardPw;
+        delete firstBoardByIdResult.salt;
+
+        const deleteBoardQuery = "DELETE FROM board WHERE boardIdx = ?";
+        const deleteBoardResult = await db.queryParam_Parse(deleteBoardQuery, [targetBoardIdx]);
+
+        if (!deleteBoardResult) {
+          res.status(200).send(defaultRes.successFalse(statusCode.DB_ERROR, resMessage.BOARD_DELETE_FAIL));
+        } else { //쿼리문이 성공했을 때
+          res.status(200).send(defaultRes.successTrue(statusCode.OK, resMessage.BOARD_DELETE_SUCCESS));
+        }
+      }
+    });
   }
 });
 
