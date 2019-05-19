@@ -89,4 +89,5 @@ typings/
 
 # Config
 **/*config.js
+config/
 # End of https://www.gitignore.io/api/node
